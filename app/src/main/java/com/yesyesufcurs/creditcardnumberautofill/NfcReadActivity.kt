@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.nfc.NfcAdapter
 import android.nfc.Tag
+import android.nfc.tech.IsoDep
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -42,12 +43,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import com.github.devnied.emvnfccard.exception.CommunicationException
+import com.github.devnied.emvnfccard.iso7816emv.EmvTags
+import com.github.devnied.emvnfccard.model.EmvCard
+import com.github.devnied.emvnfccard.model.EmvTrack2
+import com.github.devnied.emvnfccard.parser.EmvTemplate
+import com.github.devnied.emvnfccard.parser.IProvider
+import com.github.devnied.emvnfccard.utils.TlvUtil
 import com.yesyesufcurs.creditcardnumberautofill.nfc.CardData
-import com.yesyesufcurs.creditcardnumberautofill.nfc.CardReadException
-import com.yesyesufcurs.creditcardnumberautofill.nfc.EmvCardReader
 import com.yesyesufcurs.creditcardnumberautofill.ui.theme.CreditCardNumberAutofillTheme
+import fr.devnied.bitlib.BytesUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.util.Calendar
 
 private sealed interface ReadState {
     data object CheckingNfc : ReadState
@@ -60,10 +71,9 @@ private sealed interface ReadState {
 
 class NfcReadActivity : ComponentActivity() {
 
-    private val reader = EmvCardReader()
-    private var reading = false
     private var notificationsGranted = true
     private var state by mutableStateOf<ReadState>(ReadState.CheckingNfc)
+    private var reading = false
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -77,12 +87,98 @@ class NfcReadActivity : ComponentActivity() {
         reading = true
         lifecycleScope.launch {
             try {
-                onCardRead(reader.read(tag))
-            } catch (e: CardReadException) {
+                val cardData = readCard(tag)
+                if (cardData != null) {
+                    onCardRead(cardData)
+                } else {
+                    state = ReadState.Error(getString(R.string.read_error))
+                }
+            } catch (e: Exception) {
                 state = ReadState.Error(e.message ?: getString(R.string.read_error))
             } finally {
                 reading = false
             }
+        }
+    }
+
+    private suspend fun readCard(tag: Tag): CardData? = withContext(Dispatchers.IO) {
+        val isoDep = IsoDep.get(tag) ?: return@withContext null
+        try {
+            isoDep.timeout = 5000
+            isoDep.connect()
+            val provider = NfcProvider(isoDep)
+            val config = EmvTemplate.Config().apply {
+                readTransactions = false
+                readAllAids = true
+                contactLess = true
+                readAt = true
+            }
+            val parser = EmvTemplate.Builder()
+                .setProvider(provider)
+                .setConfig(config)
+                .build()
+            
+            // Add custom parser to capture Tag 5A (PAN) and 5F24 (Expiry) if tracks are missing
+            parser.addParsers(object : com.github.devnied.emvnfccard.parser.impl.EmvParser(parser) {
+                override fun extractTrackData(pEmvCard: EmvCard, pData: ByteArray): Boolean {
+                    super.extractTrackData(pEmvCard, pData)
+                    
+                    if (pEmvCard.cardNumber == null) {
+                        val pan = TlvUtil.getValue(pData, EmvTags.PAN)
+                        if (pan != null) {
+                            val panStr = BytesUtils.bytesToStringNoSpace(pan).trimEnd('F')
+                            if (pEmvCard.track2 == null) pEmvCard.track2 = EmvTrack2()
+                            pEmvCard.track2.cardNumber = panStr
+                        }
+                    }
+                    
+                    if (pEmvCard.expireDate == null) {
+                        val date = TlvUtil.getValue(pData, EmvTags.APP_EXPIRATION_DATE)
+                        if (date != null) {
+                            val dateStr = BytesUtils.bytesToStringNoSpace(date)
+                            if (dateStr.length >= 4) {
+                                try {
+                                    val year = 2000 + dateStr.substring(0, 2).toInt()
+                                    val month = dateStr.substring(2, 4).toInt()
+                                    val cal = Calendar.getInstance().apply {
+                                        set(Calendar.YEAR, year)
+                                        set(Calendar.MONTH, month - 1)
+                                        set(Calendar.DAY_OF_MONTH, 1)
+                                    }
+                                    if (pEmvCard.track2 == null) pEmvCard.track2 = EmvTrack2()
+                                    pEmvCard.track2.expireDate = cal.time
+                                } catch (e: Exception) {}
+                            }
+                        }
+                    }
+                    return pEmvCard.cardNumber != null
+                }
+            })
+
+            val card = parser.readEmvCard()
+            if (card == null || card.cardNumber == null) {
+                return@withContext null
+            }
+            
+            android.util.Log.d("NfcRead", "Card detected: ${card.cardNumber}")
+            
+            val expiryDate = card.expireDate
+            val (month, year) = if (expiryDate != null) {
+                val cal = Calendar.getInstance().apply { time = expiryDate }
+                (cal.get(Calendar.MONTH) + 1) to (cal.get(Calendar.YEAR) % 100)
+            } else null to null
+
+            CardData(
+                number = card.cardNumber?.filter { it.isDigit() } ?: "",
+                expiryMonth = month,
+                expiryYear = year,
+                holderName = ((card.holderFirstname ?: "") + " " + (card.holderLastname ?: "")).trim().ifBlank { null }
+            )
+
+        } catch (e: Exception) {
+            null
+        } finally {
+            try { isoDep.close() } catch (_: Exception) {}
         }
     }
 
@@ -95,6 +191,7 @@ class NfcReadActivity : ComponentActivity() {
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+
         setContent {
             CreditCardNumberAutofillTheme {
                 ReadScreen(
@@ -140,13 +237,16 @@ class NfcReadActivity : ComponentActivity() {
             state = ReadState.NfcDisabled
             return
         }
+        val options = Bundle().apply {
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250)
+        }
         adapter.enableReaderMode(
             this,
             nfcCallback,
             NfcAdapter.FLAG_READER_NFC_A or
                 NfcAdapter.FLAG_READER_NFC_B or
                 NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-            null
+            options
         )
         if (state !is ReadState.Waiting) state = ReadState.Waiting
     }
@@ -155,7 +255,10 @@ class NfcReadActivity : ComponentActivity() {
         CardCache.card = card
         state = ReadState.Success(card)
         vibrate()
-        Clipboard.copy(this, "cardNumber", card.number)
+        if (card.number.isNotBlank()) {
+            Clipboard.copy(this, "cardNumber", card.number)
+            toast(R.string.read_copied)
+        }
         if (notificationsGranted) {
             CardNotifier.show(this, card)
             lifecycleScope.launch {
@@ -183,6 +286,24 @@ class NfcReadActivity : ComponentActivity() {
 
     private companion object {
         const val AUTO_FINISH_MS = 4_000L
+    }
+}
+
+private class NfcProvider(private val isoDep: IsoDep) : IProvider {
+    override fun transceive(pCommand: ByteArray): ByteArray {
+        var lastException: IOException? = null
+        repeat(3) {
+            try {
+                return isoDep.transceive(pCommand)
+            } catch (e: IOException) {
+                lastException = e
+            }
+        }
+        throw CommunicationException(lastException?.message)
+    }
+
+    override fun getAt(): ByteArray {
+        return isoDep.historicalBytes ?: isoDep.hiLayerResponse ?: byteArrayOf()
     }
 }
 
