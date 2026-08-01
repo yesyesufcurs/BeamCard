@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CreditCardNumberAutofill"
+rootProject.name = "BeamCard"
 include(":app")

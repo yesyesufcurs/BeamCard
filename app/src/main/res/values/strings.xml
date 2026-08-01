@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Card Reader</string>
+    <string name="app_name">BeamCard</string>
     <string name="tile_label">Read card</string>
 
     <string name="main_subtitle">Read a contactless card with NFC and paste its details.</string>

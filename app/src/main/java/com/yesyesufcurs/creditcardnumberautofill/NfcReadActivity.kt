@@ -51,7 +51,7 @@ import com.github.devnied.emvnfccard.parser.EmvTemplate
 import com.github.devnied.emvnfccard.parser.IProvider
 import com.github.devnied.emvnfccard.utils.TlvUtil
 import com.yesyesufcurs.creditcardnumberautofill.nfc.CardData
-import com.yesyesufcurs.creditcardnumberautofill.ui.theme.CreditCardNumberAutofillTheme
+import com.yesyesufcurs.creditcardnumberautofill.ui.theme.BeamCardTheme
 import fr.devnied.bitlib.BytesUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -192,7 +192,7 @@ class NfcReadActivity : ComponentActivity() {
         }
 
         setContent {
-            CreditCardNumberAutofillTheme {
+            BeamCardTheme {
                 ReadScreen(
                     state = state,
                     onRetry = ::startReader,

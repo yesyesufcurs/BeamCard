@@ -18,11 +18,11 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CreditCardNumberAutofill">
+        android:theme="@style/Theme.BeamCard">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.CreditCardNumberAutofill"
+            android:theme="@style/Theme.BeamCard"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,7 +36,7 @@
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.CreditCardNumberAutofill" />
+            android:theme="@style/Theme.BeamCard" />
 
         <service
             android:name=".CardAutofillTileService"

@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.yesyesufcurs.creditcardnumberautofill.ui.theme.CreditCardNumberAutofillTheme
+import com.yesyesufcurs.creditcardnumberautofill.ui.theme.BeamCardTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CreditCardNumberAutofillTheme {
+            BeamCardTheme {
                 MainScreen(
                     refresh = refresh,
                     onReadCard = { startActivity(Intent(this, NfcReadActivity::class.java)) },
