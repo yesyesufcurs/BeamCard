@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">Card Reader</string>
+    <string name="tile_label">Read card</string>
+
+    <string name="main_subtitle">Read a contactless card with NFC and paste its details.</string>
+
+    <string name="status_nfc_hardware">NFC hardware</string>
+    <string name="status_nfc_enabled">NFC enabled</string>
+    <string name="status_notifications">Notifications</string>
+    <string name="status_on">On</string>
+    <string name="status_off">Off</string>
+    <string name="action_enable_nfc">Open NFC settings</string>
+    <string name="action_request_notifications">Allow notifications</string>
+    <string name="action_read_card">Read a card</string>
+    <string name="action_setup_tile">Add Quick Settings tile</string>
+    <string name="tile_help_title">Add the Quick Settings tile</string>
+    <string name="tile_help_text">Open the Quick Settings, tap the pencil icon, then drag the \u201cRead card\u201d tile into place.</string>
+    <string name="ok">OK</string>
+
+    <string name="read_title">Tap your card</string>
+    <string name="read_hint">Hold the back of your phone against the card until it vibrates.</string>
+    <string name="read_error">Could not read this card.</string>
+    <string name="read_error_no_nfc">This device does not have NFC.</string>
+    <string name="read_error_nfc_disabled">NFC is turned off. Enable it and try again.</string>
+    <string name="read_retry">Try again</string>
+
+    <string name="read_success">Card read</string>
+    <string name="read_copied">Card number copied to clipboard.</string>
+    <string name="read_steps_hint">Pull down the notification and paste each field into your app.</string>
+
+    <string name="copy_number">Copy number</string>
+    <string name="copy_expiry">Copy expiry</string>
+    <string name="copy_name">Copy name</string>
+    <string name="action_clear">Clear clipboard</string>
+    <string name="done">Done</string>
+    <string name="copied">Copied to clipboard</string>
+
+    <string name="notif_title">Card ready</string>
+    <string name="notif_text">1. Paste the card number\n2. Tap \u201cCopy expiry\u201d and paste it\n3. Tap \u201cCopy name\u201d if needed</string>
+    <string name="notif_step_number">Paste the card number into its field.</string>
+    <string name="notif_step_expiry">Paste the expiry into the expiry field.</string>
+    <string name="notif_step_name">Paste the cardholder name into the name field.</string>
+
+    <string name="expiry_format">Expiry</string>
+</resources>
