@@ -159,9 +159,7 @@ class NfcReadActivity : ComponentActivity() {
             if (card == null || card.cardNumber == null) {
                 return@withContext null
             }
-            
-            android.util.Log.d("NfcRead", "Card detected: ${card.cardNumber}")
-            
+
             val expiryDate = card.expireDate
             val (month, year) = if (expiryDate != null) {
                 val cal = Calendar.getInstance().apply { time = expiryDate }
