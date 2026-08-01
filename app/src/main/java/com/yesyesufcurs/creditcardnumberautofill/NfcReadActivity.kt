@@ -171,8 +171,7 @@ class NfcReadActivity : ComponentActivity() {
             CardData(
                 number = card.cardNumber?.filter { it.isDigit() } ?: "",
                 expiryMonth = month,
-                expiryYear = year,
-                holderName = ((card.holderFirstname ?: "") + " " + (card.holderLastname ?: "")).trim().ifBlank { null }
+                expiryYear = year
             )
 
         } catch (e: Exception) {
@@ -204,10 +203,6 @@ class NfcReadActivity : ComponentActivity() {
                     },
                     onCopyExpiry = { card ->
                         Clipboard.copy(this, "cardExpiry", card.expiryText.orEmpty())
-                        toast(R.string.copied)
-                    },
-                    onCopyName = { card ->
-                        Clipboard.copy(this, "cardName", card.holderName.orEmpty())
                         toast(R.string.copied)
                     },
                     onDone = ::onDone
@@ -260,7 +255,7 @@ class NfcReadActivity : ComponentActivity() {
             toast(R.string.read_copied)
         }
         if (notificationsGranted) {
-            CardNotifier.show(this, card)
+            CardNotifier.show(this)
             lifecycleScope.launch {
                 delay(AUTO_FINISH_MS)
                 finish()
@@ -314,7 +309,6 @@ private fun ReadScreen(
     onOpenNfcSettings: () -> Unit,
     onCopyNumber: (CardData) -> Unit,
     onCopyExpiry: (CardData) -> Unit,
-    onCopyName: (CardData) -> Unit,
     onDone: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -378,7 +372,6 @@ private fun ReadScreen(
                     card = state.card,
                     onCopyNumber = onCopyNumber,
                     onCopyExpiry = onCopyExpiry,
-                    onCopyName = onCopyName,
                     onDone = onDone
                 )
             }
@@ -391,7 +384,6 @@ private fun SuccessContent(
     card: CardData,
     onCopyNumber: (CardData) -> Unit,
     onCopyExpiry: (CardData) -> Unit,
-    onCopyName: (CardData) -> Unit,
     onDone: () -> Unit
 ) {
     Text(
@@ -412,10 +404,6 @@ private fun SuccessContent(
             card.expiryText?.let {
                 Spacer(Modifier.height(4.dp))
                 Text("${stringResource(R.string.expiry_format)}: $it")
-            }
-            card.holderName?.let {
-                Spacer(Modifier.height(4.dp))
-                Text(it)
             }
         }
     }
@@ -445,12 +433,6 @@ private fun SuccessContent(
         }
         OutlinedButton(onClick = { onCopyExpiry(card) }, modifier = Modifier.weight(1f)) {
             Text(stringResource(R.string.copy_expiry), fontSize = 12.sp)
-        }
-    }
-    if (card.holderName != null) {
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(onClick = { onCopyName(card) }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.copy_name))
         }
     }
     Spacer(Modifier.height(8.dp))

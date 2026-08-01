@@ -35,8 +35,7 @@ enum class CardNetwork(val displayName: String) {
 data class CardData(
     val number: String,
     val expiryMonth: Int?,
-    val expiryYear: Int?,
-    val holderName: String?
+    val expiryYear: Int?
 ) {
     val network: CardNetwork get() = CardNetwork.detect(number)
 

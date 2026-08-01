@@ -63,7 +63,6 @@
             <intent-filter>
                 <action android:name="com.yesyesufcurs.creditcardnumberautofill.action.COPY_NUMBER" />
                 <action android:name="com.yesyesufcurs.creditcardnumberautofill.action.COPY_EXPIRY" />
-                <action android:name="com.yesyesufcurs.creditcardnumberautofill.action.COPY_NAME" />
                 <action android:name="com.yesyesufcurs.creditcardnumberautofill.action.CLEAR" />
             </intent-filter>
         </receiver>

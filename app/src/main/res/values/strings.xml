@@ -30,16 +30,14 @@
 
     <string name="copy_number">Copy number</string>
     <string name="copy_expiry">Copy expiry</string>
-    <string name="copy_name">Copy name</string>
     <string name="action_clear">Clear clipboard</string>
     <string name="done">Done</string>
     <string name="copied">Copied to clipboard</string>
 
     <string name="notif_title">Card ready</string>
-    <string name="notif_text">1. Paste the card number\n2. Tap \u201cCopy expiry\u201d and paste it\n3. Tap \u201cCopy name\u201d if needed</string>
+    <string name="notif_text">1. Paste the card number\n2. Tap \u201cCopy expiry\u201d and paste it</string>
     <string name="notif_step_number">Paste the card number into its field.</string>
     <string name="notif_step_expiry">Paste the expiry into the expiry field.</string>
-    <string name="notif_step_name">Paste the cardholder name into the name field.</string>
 
     <string name="expiry_format">Expiry</string>
 </resources>

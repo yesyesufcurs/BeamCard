@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import com.yesyesufcurs.creditcardnumberautofill.nfc.CardData
 
 object CardNotifier {
 
@@ -16,7 +15,6 @@ object CardNotifier {
 
     const val ACTION_COPY_NUMBER = "com.yesyesufcurs.creditcardnumberautofill.action.COPY_NUMBER"
     const val ACTION_COPY_EXPIRY = "com.yesyesufcurs.creditcardnumberautofill.action.COPY_EXPIRY"
-    const val ACTION_COPY_NAME = "com.yesyesufcurs.creditcardnumberautofill.action.COPY_NAME"
     const val ACTION_CLEAR = "com.yesyesufcurs.creditcardnumberautofill.action.CLEAR"
 
     private const val CLEAR_REQUEST_CODE = 0xCC01
@@ -34,7 +32,7 @@ object CardNotifier {
         manager.createNotificationChannel(channel)
     }
 
-    fun show(context: Context, card: CardData) {
+    fun show(context: Context) {
         createChannel(context)
 
         val contentIntent = PendingIntent.getActivity(
@@ -54,11 +52,7 @@ object CardNotifier {
             .setOnlyAlertOnce(true)
             .addAction(0, context.getString(R.string.copy_number), copyAction(context, ACTION_COPY_NUMBER))
             .addAction(0, context.getString(R.string.copy_expiry), copyAction(context, ACTION_COPY_EXPIRY))
-
-        if (card.holderName != null) {
-            builder.addAction(0, context.getString(R.string.copy_name), copyAction(context, ACTION_COPY_NAME))
-        }
-        builder.addAction(0, context.getString(R.string.action_clear), copyAction(context, ACTION_CLEAR))
+            .addAction(0, context.getString(R.string.action_clear), copyAction(context, ACTION_CLEAR))
 
         context.getSystemService(NotificationManager::class.java)
             .notify(NOTIFICATION_ID, builder.build())
@@ -67,7 +61,6 @@ object CardNotifier {
     }
 
     fun update(context: Context, text: String) {
-        val card = CardCache.card ?: return
         val manager = context.getSystemService(NotificationManager::class.java)
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_qs_tile)
@@ -86,10 +79,7 @@ object CardNotifier {
             .setOnlyAlertOnce(true)
             .addAction(0, context.getString(R.string.copy_number), copyAction(context, ACTION_COPY_NUMBER))
             .addAction(0, context.getString(R.string.copy_expiry), copyAction(context, ACTION_COPY_EXPIRY))
-        if (card.holderName != null) {
-            builder.addAction(0, context.getString(R.string.copy_name), copyAction(context, ACTION_COPY_NAME))
-        }
-        builder.addAction(0, context.getString(R.string.action_clear), copyAction(context, ACTION_CLEAR))
+            .addAction(0, context.getString(R.string.action_clear), copyAction(context, ACTION_CLEAR))
         manager.notify(NOTIFICATION_ID, builder.build())
     }
 

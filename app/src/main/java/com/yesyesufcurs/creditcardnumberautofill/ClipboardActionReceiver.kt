@@ -19,11 +19,6 @@ class ClipboardActionReceiver : BroadcastReceiver() {
                 CardNotifier.update(context, context.getString(R.string.notif_step_expiry))
             }
 
-            CardNotifier.ACTION_COPY_NAME -> {
-                Clipboard.copy(context, "cardName", card.holderName.orEmpty())
-                CardNotifier.update(context, context.getString(R.string.notif_step_name))
-            }
-
             CardNotifier.ACTION_CLEAR -> {
                 Clipboard.clear(context)
                 CardNotifier.dismiss(context)
