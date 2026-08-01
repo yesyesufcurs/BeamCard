@@ -36,7 +36,7 @@
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.BeamCard" />
+            android:theme="@style/Theme.BeamCard.Dialog" />
 
         <service
             android:name=".CardAutofillTileService"

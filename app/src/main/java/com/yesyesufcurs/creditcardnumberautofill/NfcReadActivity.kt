@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -71,6 +70,7 @@ private sealed interface ReadState {
 
 class NfcReadActivity : ComponentActivity() {
 
+    private var fromTile = false
     private var notificationsGranted = true
     private var state by mutableStateOf<ReadState>(ReadState.CheckingNfc)
     private var reading = false
@@ -183,6 +183,8 @@ class NfcReadActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        fromTile = intent.getBooleanExtra(EXTRA_FROM_TILE, false)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             notificationsGranted =
                 checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
@@ -195,6 +197,7 @@ class NfcReadActivity : ComponentActivity() {
             BeamCardTheme {
                 ReadScreen(
                     state = state,
+                    fromTile = fromTile,
                     onRetry = ::startReader,
                     onOpenNfcSettings = { startActivity(Intent(Settings.ACTION_NFC_SETTINGS)) },
                     onCopyNumber = { card ->
@@ -250,14 +253,20 @@ class NfcReadActivity : ComponentActivity() {
         CardCache.card = card
         state = ReadState.Success(card)
         vibrate()
+
         if (card.number.isNotBlank()) {
             Clipboard.copy(this, "cardNumber", card.number)
-            toast(R.string.read_copied)
+            if (!fromTile) toast(R.string.read_copied)
         }
+
         if (notificationsGranted) {
             CardNotifier.show(this)
+        }
+
+        if (fromTile) {
+            toast(R.string.read_success_quick)
             lifecycleScope.launch {
-                delay(AUTO_FINISH_MS)
+                delay(QUICK_FINISH_MS)
                 finish()
             }
         }
@@ -279,8 +288,9 @@ class NfcReadActivity : ComponentActivity() {
         Toast.makeText(this, getString(resId), Toast.LENGTH_SHORT).show()
     }
 
-    private companion object {
-        const val AUTO_FINISH_MS = 4_000L
+    companion object {
+        const val EXTRA_FROM_TILE = "from_tile"
+        const val QUICK_FINISH_MS = 1_000L
     }
 }
 
@@ -305,26 +315,32 @@ private class NfcProvider(private val isoDep: IsoDep) : IProvider {
 @Composable
 private fun ReadScreen(
     state: ReadState,
+    fromTile: Boolean,
     onRetry: () -> Unit,
     onOpenNfcSettings: () -> Unit,
     onCopyNumber: (CardData) -> Unit,
     onCopyExpiry: (CardData) -> Unit,
     onDone: () -> Unit
 ) {
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(32.dp))
+            if (!fromTile || state !is ReadState.Success) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(32.dp))
+            }
 
             when (state) {
                 is ReadState.CheckingNfc -> CircularProgressIndicator()
@@ -370,6 +386,7 @@ private fun ReadScreen(
 
                 is ReadState.Success -> SuccessContent(
                     card = state.card,
+                    fromTile = fromTile,
                     onCopyNumber = onCopyNumber,
                     onCopyExpiry = onCopyExpiry,
                     onDone = onDone
@@ -382,17 +399,21 @@ private fun ReadScreen(
 @Composable
 private fun SuccessContent(
     card: CardData,
+    fromTile: Boolean,
     onCopyNumber: (CardData) -> Unit,
     onCopyExpiry: (CardData) -> Unit,
     onDone: () -> Unit
 ) {
     Text(
-        text = stringResource(R.string.read_success),
+        text = stringResource(if (fromTile) R.string.read_success_quick else R.string.read_success),
         style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center
     )
-    Spacer(Modifier.height(16.dp))
 
+    if (fromTile) return
+
+    Spacer(Modifier.height(16.dp))
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,

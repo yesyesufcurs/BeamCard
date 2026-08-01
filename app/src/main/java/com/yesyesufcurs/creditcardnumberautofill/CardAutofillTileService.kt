@@ -11,7 +11,9 @@ class CardAutofillTileService : TileService() {
     @SuppressLint("StartActivityAndCollapseDeprecated")
     override fun onClick() {
         super.onClick()
-        val intent = Intent(this, NfcReadActivity::class.java)
+        val intent = Intent(this, NfcReadActivity::class.java).apply {
+            putExtra(NfcReadActivity.EXTRA_FROM_TILE, true)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val pendingIntent = PendingIntent.getActivity(
                 this,

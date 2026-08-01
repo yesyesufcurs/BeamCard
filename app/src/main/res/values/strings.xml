@@ -25,6 +25,7 @@
     <string name="read_retry">Try again</string>
 
     <string name="read_success">Card read</string>
+    <string name="read_success_quick">Card read successfully!</string>
     <string name="read_copied">Card number copied to clipboard.</string>
     <string name="read_steps_hint">Pull down the notification and paste each field into your app.</string>
 
