@@ -52,5 +52,5 @@ For the fastest flow, add the **Read card** tile to your Quick Settings:
 
 ## Libraries used
 
-The app uses the [`emvnfccard`](https://github.com/devnied/EMV-NFC-Paycard-Enabler) library to decode the card details from the NFC tag.
+The app uses the [`emvnfccard`](https://github.com/devnied/EMV-NFC-Paycard-Enrollment) library to decode the card details from the NFC tag.
 
