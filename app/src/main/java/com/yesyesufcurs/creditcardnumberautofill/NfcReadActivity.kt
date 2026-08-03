@@ -53,6 +53,7 @@ import com.yesyesufcurs.creditcardnumberautofill.nfc.CardData
 import com.yesyesufcurs.creditcardnumberautofill.ui.theme.BeamCardTheme
 import fr.devnied.bitlib.BytesUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,10 +71,11 @@ private sealed interface ReadState {
 
 class NfcReadActivity : ComponentActivity() {
 
-    private var fromTile = false
+    private var fromTile by mutableStateOf(false)
     private var notificationsGranted = true
     private var state by mutableStateOf<ReadState>(ReadState.CheckingNfc)
     private var reading = false
+    private var scanJob: Job? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -85,7 +87,7 @@ class NfcReadActivity : ComponentActivity() {
     private val nfcCallback = NfcAdapter.ReaderCallback { tag ->
         if (reading || state is ReadState.Success) return@ReaderCallback
         reading = true
-        lifecycleScope.launch {
+        scanJob = lifecycleScope.launch {
             try {
                 val cardData = readCard(tag)
                 if (cardData != null) {
@@ -182,6 +184,9 @@ class NfcReadActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fromTile = intent.getBooleanExtra(EXTRA_FROM_TILE, false)
+        if (fromTile) {
+            clearScanData()
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             notificationsGranted =
@@ -220,6 +225,25 @@ class NfcReadActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         NfcAdapter.getDefaultAdapter(this)?.disableReaderMode(this)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        // Cancel ongoing scan if any
+        scanJob?.cancel()
+        reading = false
+
+        // Reset state for a new scan
+        fromTile = intent.getBooleanExtra(EXTRA_FROM_TILE, false)
+        if (fromTile) {
+            clearScanData()
+        }
+        state = ReadState.Waiting
+
+        // Re-enable reader mode to ensure it's active
+        startReader()
     }
 
     private fun startReader() {
@@ -271,10 +295,14 @@ class NfcReadActivity : ComponentActivity() {
     }
 
     private fun onDone() {
+        clearScanData()
+        finish()
+    }
+
+    private fun clearScanData() {
         Clipboard.clear(this)
         CardNotifier.dismiss(this)
         CardCache.card = null
-        finish()
     }
 
     private fun vibrate() {
