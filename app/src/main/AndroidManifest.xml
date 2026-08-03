@@ -33,7 +33,7 @@
             android:name=".NfcReadActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:theme="@style/Theme.BeamCard.Dialog" />
 
         <service
