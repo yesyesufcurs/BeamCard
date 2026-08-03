@@ -19,7 +19,7 @@
 
     <string name="read_title">Tap your card</string>
     <string name="read_hint">Hold the back of your phone against the card until it vibrates.</string>
-    <string name="read_error">Could not read this card.</string>
+    <string name="read_error">Could not read this card. Make sure you are scanning a valid credit or debit card and that you have performed at least one Chip and PIN transaction to activate its NFC chip.</string>
     <string name="read_error_no_nfc">This device does not have NFC.</string>
     <string name="read_error_nfc_disabled">NFC is turned off. Enable it and try again.</string>
     <string name="read_retry">Try again</string>
@@ -32,7 +32,7 @@
     <string name="copy_number">Copy number</string>
     <string name="copy_expiry">Copy expiry</string>
     <string name="action_clear">Clear clipboard</string>
-    <string name="done">Done</string>
+    <string name="action_clear_and_close">Clear clipboard and close</string>
     <string name="copied">Copied to clipboard</string>
 
     <string name="notif_title">Card ready</string>

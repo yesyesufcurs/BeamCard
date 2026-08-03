@@ -484,7 +484,7 @@ private fun SuccessContent(
     }
     Spacer(Modifier.height(8.dp))
     Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
-        Text(stringResource(R.string.done))
+        Text(stringResource(R.string.action_clear_and_close))
     }
 }
 
